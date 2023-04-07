@@ -1,12 +1,7 @@
 onload = (event) => {
     cambioRadio();
-    // const ipRed = '15.0.0.0';
-    // const mascara = '255.0.0.0';
-    // const numHostsPorSubred = 65536;
-    // const numSubredDeseada = 255;
-
-    // const rangoSubred = obtenerRangoSubred(ipRed, mascara, numHostsPorSubred, numSubredDeseada);
-    // console.log(rangoSubred);
+    document.getElementById("direccion_red").value = "15.0.0.0";
+    document.getElementById("peticion").value = "250";
 }
 fn = () => {
     let DOMaviso = document.getElementById("aviso");
