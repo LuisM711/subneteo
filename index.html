@@ -78,17 +78,27 @@
             </div>
             <p id="nuevaMascara"></p>
             <div id="rangos">
-                <h3>Primeros rangos</h3>
-                <p id="rango0"></p>
-                <p id="rango1"></p>
-                <p id="rango2"></p>
-                <h3>Ultimos rangos</h3>
-                <p id="rangoN-2"></p>
-                <p id="rangoN-1"></p>
-                <p id="rangoN-0"></p>
+                <div id="primero">
+                    <h3>Primeros rangos</h3>
+                    <p id="rango0"></p>
+                    <p id="rango1"></p>
+                    <p id="rango2"></p>
+                </div>
+                <div id="ultimos">
+                    <h3>Ultimos rangos</h3>
+                    <p id="rangoN-2"></p>
+                    <p id="rangoN-1"></p>
+                    <p id="rangoN-0"></p>
+                </div>
             </div>
         </div>
-
+        <div id="tablaDeRedes"></div>
+        <label for="textAreaSubredes" class="form-label">Toooodas las subredes</label><button type="button" class="btn btn-success run" onclick="textArea()"><svg xmlns="http://www.w3.org/2000/svg"
+            width="16" height="16" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
+            <path
+                d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z" />
+        </svg> Run</button>
+        <textarea class="form-control" id="textAreaSubredes" rows="3"></textarea>
     </div>
     <style>
         .form-group>input {
@@ -103,6 +113,10 @@
 
         #subredesYhost {
             display: flex;
+        }
+
+        ul.pagination {
+            overflow: auto;
         }
     </style>
 </body>

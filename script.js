@@ -1,12 +1,28 @@
+let ipGlobal = '';
+let mascaraGlobal = '';
+let numeroSubredesGlobal = '';
+let hostPorSubredGlobal = '';
 onload = (event) => {
     cambioRadio();
     document.getElementById("direccion_red").value = "15.0.0.0";
     document.getElementById("peticion").value = "250";
+    ipGlobal = '';
+    mascaraGlobal = '';
+    numeroSubredesGlobal = '';
+    hostPorSubredGlobal = '';
 }
+
 fn = () => {
+    //debugger
     let DOMaviso = document.getElementById("aviso");
     DOMaviso.innerHTML = '';
     let ip = document.getElementById("direccion_red").value;
+    let peticion = document.getElementById("peticion").value;
+
+    if (!esEnteroPositivo(peticion)) {
+        avisoError("Los datos ingresados no son validos");
+        return 0;
+    }
     let numeroSubredes = 0, numeroHostPorSubred = 0;
     if (!esIpValida(ip)) {
         avisoError("Hay un error en la IP de la red");
@@ -39,23 +55,43 @@ fn = () => {
     let limiteInferior = 0, limiteSuperior = 0;
     let subred = [];
     let parrafo = "";
-    //obtenerRangoSubred = (ipv4Red, mascaraSubred, numHostsPorSubred, numSubred) => {
-    for (let i = 0; i < 3; i++) {
-        subred = obtenerRangoSubred(ip, mascara, numeroHostPorSubred, i);
-        limiteInferior = subred[0];
-        limiteSuperior = subred[1];
-        parrafo = document.getElementById(`rango${i}`);
-        parrafo.innerHTML = `Subred ${i+1}: [${limiteInferior} - ${limiteSuperior}]`;
+    if (numeroSubredes >= 4) {
+        document.getElementById("ultimos").style = "display:''";
+
+        for (let i = 0; i < 3; i++) {
+            subred = obtenerRangoSubred(ip, mascara, numeroHostPorSubred, i);
+            limiteInferior = subred[0];
+            limiteSuperior = subred[1];
+            parrafo = document.getElementById(`rango${i}`);
+            parrafo.innerHTML = `Subred ${i + 1}: [${limiteInferior} - ${limiteSuperior}]`;
+        }
+        for (let i = numeroSubredes; i > numeroSubredes - 3; i--) {
+
+            subred = obtenerRangoSubred(ip, mascara, numeroHostPorSubred, i - 1);
+            limiteInferior = subred[0];
+            limiteSuperior = subred[1];
+            parrafo = document.getElementById(`rangoN-${numeroSubredes - i}`);
+            parrafo.innerHTML = `Subred ${i}: [${limiteInferior} - ${limiteSuperior}]`;
+        }
+    } else {
+        document.getElementById("ultimos").style = "display:none";
+        for (let i = 0; i < numeroSubredes; i++) {
+            subred = obtenerRangoSubred(ip, mascara, numeroHostPorSubred, i);
+            limiteInferior = subred[0];
+            limiteSuperior = subred[1];
+            parrafo = document.getElementById(`rango${i}`);
+            parrafo.innerHTML = `Subred ${i + 1}: [${limiteInferior} - ${limiteSuperior}]`;
+        }
     }
-    //debugger
-    for (let i = numeroSubredes; i > numeroSubredes-3; i--) {
-        
-        subred = obtenerRangoSubred(ip, mascara, numeroHostPorSubred, i-1);
-        limiteInferior = subred[0];
-        limiteSuperior = subred[1];
-        parrafo = document.getElementById(`rangoN-${numeroSubredes-i}`);
-        parrafo.innerHTML = `Subred ${i}: [${limiteInferior} - ${limiteSuperior}]`;
-    }
+    ipGlobal = ip;
+    mascaraGlobal = mascara;
+    numeroSubredesGlobal = numeroSubredes;
+    hostPorSubredGlobal = numeroHostPorSubred;
+    //console.log(obtenerNuevaMascara(mascara,numeroSubredes));
+    let nuevaMascara = obtenerNuevaMascara(mascara,numeroSubredes)
+    document.getElementById("nuevaMascara").textContent = "Nueva mascara: "+nuevaMascara;
+    let table = new PaginatedTable((numeroSubredes / 10) + 1, 10, [ip, mascara, numeroHostPorSubred]);
+    table.iniciar();
 }
 
 
@@ -84,7 +120,6 @@ esIpValida = (ip = "") => {
                 return false;
         }
         return true;
-
     } catch (error) {
         return false;
     }
@@ -101,27 +136,27 @@ avisoError = (mensaje = "") => {
     DOMaviso.innerHTML = '';
     DOMaviso.appendChild(aviso);
 }
-obtenerRangoSubred = (ipv4Red, mascaraSubred, numHostsPorSubred, numSubred) => {
+obtenerRangoSubred = (ip, mascaraSubred, numHostsPorSubred, numSubred) => {
     // Convertir la dirección IP y la máscara de subred a números binarios
-    let ipv4RedBin = ipv4Red.split('.').map(octeto => parseInt(octeto).toString(2).padStart(8, '0')).join('');
-    let mascaraSubredBin = mascaraSubred.split('.').map(octeto => parseInt(octeto).toString(2).padStart(8, '0')).join('');
+    let ipBin = convertirABinario(ip);
+    let mascaraSubredBin = convertirABinario(mascaraSubred);
 
     // Calcular el número de subredes posibles
     let numBitsSubred = mascaraSubredBin.split('1').length - 1;
     let numSubredes = Math.pow(2, 32 - numBitsSubred) / numHostsPorSubred;
 
-    // Verificar si el número de subred solicitado es válido
+    // Se detecta si la subred que se solicita es valida
     if (numSubred < 0 || numSubred >= numSubredes) {
-        throw new Error('Número de subred inválido');
+        throw new Error(`Numero de subred inválido ${numSubred}`);
     }
 
     // Calcular la dirección IP de inicio y fin de la subred solicitada
-    let inicioSubredBin = (parseInt(ipv4RedBin, 2) + numHostsPorSubred * numSubred).toString(2).padStart(32, '0');
+    let inicioSubredBin = (parseInt(ipBin, 2) + numHostsPorSubred * numSubred).toString(2).padStart(32, '0');
     let finSubredBin = (parseInt(inicioSubredBin, 2) + numHostsPorSubred - 1).toString(2);
-
     // Convertir las direcciones IP de inicio y fin a formato decimal
-    let inicioSubred = inicioSubredBin.match(/.{8}/g).map(octeto => parseInt(octeto, 2)).join('.');
-    let finSubred = finSubredBin.padStart(32, '0').match(/.{8}/g).map(octeto => parseInt(octeto, 2)).join('.');
+    //console.log(inicioSubredBin,finSubredBin,numSubred,convertirADecimal(inicioSubredBin),convertirADecimal(complementoBinario(finSubredBin))); 
+    let inicioSubred = convertirADecimal(inicioSubredBin);//El fin de subred se rellena con 0 a la izq
+    let finSubred = convertirADecimal(finSubredBin.padStart(32, '0'));
 
     return [inicioSubred, finSubred];
 }
@@ -137,29 +172,23 @@ obtenerMascara = (ip = "") => {
     mascara = octetosMascara.join('.');
     return mascara;
 }
+obtenerNuevaMascara = (mascara, subredes) => {
+    let unosMascara = convertirABinario(mascara).split('1').length-1;
+    let unosSubred = (subredes).toString(2).split('0').length-1;
+    let nuevaMascara = '1'.repeat(unosMascara+unosSubred).padEnd(32,'0');
+    return convertirADecimal(nuevaMascara);
+    
+}
 obtenerHostPorSubred = (mascara = "", subredes = 0) => {
-    let mascaraBinaria = mascara.split('.').map(octeto => parseInt(octeto).toString(2).padStart(8, '0')).join('');
-    let numeroPotencia = -1;
-    let primerCeroMascara = 0;
-    let result = 0;
-    do {
-        numeroPotencia++;
-        result = Math.pow(2, numeroPotencia);
-    } while (subredes > result);
-    primerCeroMascara = mascaraBinaria.split('1').length - 1;
-    mascaraBinaria = mascaraBinaria.split('');
-    while (numeroPotencia > 0) {
-        mascaraBinaria[primerCeroMascara] = '1';
-        numeroPotencia--;
-        primerCeroMascara++;
-    }
-    mascaraBinaria = mascaraBinaria.join('');
-    return Math.pow(2, mascaraBinaria.split('0').length - 1);
-
+    let mascaraBinaria = convertirABinario(mascara);
+    let bitsRed = 0;
+    bitsRed += mascaraBinaria.split('1').length - 1;
+    bitsRed += ((subredes - 1).toString(2)).length;
+    let bitsHostPorSubred = 32 - bitsRed;
+    return Math.pow(2, bitsHostPorSubred);
 }
 obtenerNumeroSubredes = (mascara = '', numHostsPorSubred) => {
-    //debugger;
-    let mascaraBinaria = mascara.split('.').map(octeto => parseInt(octeto).toString(2).padStart(8, '0')).join('');
+    mascaraBinaria = convertirABinario(mascara);
     let numBitsSubred = mascaraBinaria.split('1').length - 1;
     let numSubredes = Math.pow(2, 32 - numBitsSubred) / numHostsPorSubred;
     return numSubredes;
@@ -170,4 +199,222 @@ masCercanoADos = (num) => {
         potencia *= 2;
     }
     return potencia;
+}
+convertirABinario = (ip) => {
+    let bin = "";
+    let octetos = ip.split('.');
+    for (let i = 0; i < octetos.length; i++) {
+        bin += Number(octetos[i]).toString(2).padStart(8, '0');
+    }
+    return bin;
+}
+esEnteroPositivo = (valor) => {
+    const enteroPositivoRegex = /^[1-9]\d*$/;
+    return enteroPositivoRegex.test(valor);
+}
+convertirADecimal = (ipBinaria) => {
+    ipBinaria = agregarPuntos(ipBinaria);
+    ipDecimal = [];
+    ipBinaria = ipBinaria.split('.');
+    for (let i = 0; i < ipBinaria.length; i++) {
+        ipDecimal.push(parseInt(ipBinaria[i], 2));
+    }
+    return (ipDecimal.join('.'));
+}
+agregarPuntos = (ipBinaria = '') => {
+    const regex = /.{1,8}/g; // expresión regular para dividir en grupos de 8 caracteres
+    const arr = ipBinaria.match(regex); // divide el string en grupos de 8 caracteres y los guarda en un arreglo
+    return arr.join('.');
+}
+complementoBinario = (binario) => {
+    // Convertir el string a un arreglo de caracteres para poder manipularlo
+    const caracteres = binario.split("");
+
+    // Iterar sobre el arreglo y cambiar cada dígito por su complemento
+    const complemento = caracteres.map((digito) => {
+        if (digito === "0") {
+            return "1";
+        } else if (digito === "1") {
+            return "0";
+        } else {
+            // Si el caracter no es un 0 o un 1, devolver el mismo caracter
+            return digito;
+        }
+    });
+
+    // Unir los caracteres del arreglo en un string y devolverlo
+    return complemento.join("");
+}
+async function textArea() {
+    let textarea = document.getElementById("textAreaSubredes");
+    // let i = 0;
+    // while (true) {
+    //     console.log(i);
+    //     await delay(0.5);
+    // }
+    textarea.innerHTML = "";
+    let subred = [];
+    //for (let i = 0; i < numeroSubredesGlobal; i++) {
+    let i = 0; // índice del carácter actual
+    const intervalId = setInterval(() => {
+
+        subred = obtenerRangoSubred(ipGlobal, mascaraGlobal, hostPorSubredGlobal, i);
+        textarea.innerHTML += `Subred ${i + 1}: [${subred[0]},${subred[1]}]`;
+        textarea.innerHTML += "\n";
+        i++; // incrementar el índice del carácter actual
+        if (i >= numeroSubredesGlobal) {
+            clearInterval(intervalId); // detener el intervalo cuando se hayan agregado todos los caracteres
+        }
+    }, 0.1);
+
+}
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+class PaginatedTable {
+    constructor(pages, subredesPorPagina, datosGenerales) {
+        this.currentPage = 1;
+        this.pages = pages;
+        this.subredesPorPagina = subredesPorPagina;
+        this.datosGenerales = datosGenerales;
+        this.data = null;
+        this.cargado = false;
+    }
+    async iniciar() {
+        let data = await this.fetchData(this.currentPage, this.subredesPorPagina);
+        this.renderTableData(data);
+    }
+    async fetchData(page, subredesPorPagina) {
+        const primeraSubred = (page * subredesPorPagina) - subredesPorPagina + 1;
+        const ultimaSubred = primeraSubred + subredesPorPagina - 1;
+        const data = [];
+        let ip = this.datosGenerales[0];
+        let mascara = this.datosGenerales[1];
+        let hostPorSubred = this.datosGenerales[2];
+        let subred = '';
+        for (let i = primeraSubred; i <= ultimaSubred; i++) {
+            try {
+                subred = obtenerRangoSubred(ip, mascara, hostPorSubred, i - 1);
+            } catch (error) {
+                break;
+            }
+
+            data.push({
+                numeroSubred: i,
+                subredID: subred[0],
+                broadcast: subred[1],
+            });
+        }
+        return Promise.resolve(data);
+        //return new Promise(data);
+
+    }
+    async goToPage(page) {
+        if (page < 1 || page > this.pages) {
+            return;
+        }
+        this.currentPage = page;
+        //let data = await fetchData(this.currentPage, this.subredesPorPagina);
+        let data = await this.fetchData(this.currentPage, this.subredesPorPagina);
+        console.log(data);
+        this.renderTableData(data);
+    }
+    async prevPage() {
+        const prevPage = this.currentPage - 1;
+        if (prevPage < 1) {
+            return;
+        }
+        this.currentPage = prevPage;
+        let data = await fetchData(this.currentPage, this.subredesPorPagina);
+        this.renderTableData(data);
+
+    }
+    async renderTableData(data) {
+        if (!this.cargado) {
+            const table = document.createElement('table');
+            table.classList.add('table');
+
+            const thead = document.createElement('thead');
+            const tr = document.createElement('tr');
+            const th1 = document.createElement('th');
+            th1.textContent = 'Numero de subred';
+            const th2 = document.createElement('th');
+            th2.textContent = 'ID de red';
+            const th3 = document.createElement('th');
+            th3.textContent = 'Broadcast';
+
+            tr.appendChild(th1);
+            tr.appendChild(th2);
+            tr.appendChild(th3);
+            thead.appendChild(tr);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            data.forEach((row, index) => {
+                //console.log(row,index);
+                const tr = document.createElement('tr');
+                const td1 = document.createElement('td');
+                td1.id = `td1_${index + 1}`;
+                td1.textContent = row.numeroSubred;
+                const td2 = document.createElement('td');
+                td2.id = `td2_${index + 1}`;
+                td2.textContent = row.subredID;
+                const td3 = document.createElement('td');
+                td3.id = `td3_${index + 1}`;
+                td3.textContent = row.broadcast;
+
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            let pagination = document.createElement('div');
+            pagination.classList.add('pagination');
+            let ul = document.createElement('ul');
+            ul.classList.add('pagination');
+            for (let i = 1; i <= this.pages; i++) {
+                let li = document.createElement('li');
+                li.classList.add('page-item');
+                const a = document.createElement('a');
+                a.classList.add('page-link');
+                //a.href = '#';
+                a.textContent = i;
+                a.addEventListener('click', () => {
+                    this.goToPage(i);
+                });
+                li.appendChild(a);
+                ul.appendChild(li);
+            }//debugger;
+            pagination.appendChild(ul);
+            const container = document.getElementById("tablaDeRedes");
+            container.innerHTML = '';
+            container.appendChild(table);
+            container.appendChild(pagination);
+            this.cargado = true;
+        }
+        else {
+
+            data.forEach((row, index) => {
+                //console.log(row,index);
+                const td1 = document.getElementById(`td1_${index + 1}`);
+                td1.textContent = row.numeroSubred;
+                const td2 = document.getElementById(`td2_${index + 1}`);
+                td2.textContent = row.subredID;
+                const td3 = document.getElementById(`td3_${index + 1}`);
+                td3.textContent = row.broadcast;
+            });
+            if (data.length < this.subredesPorPagina) {
+                for (let i = data.length; i < this.subredesPorPagina; i++) {
+                    const td1 = document.getElementById(`td1_${i + 1}`);
+                    td1.textContent = "";
+                    const td2 = document.getElementById(`td2_${i + 1}`);
+                    td2.textContent = "";
+                    const td3 = document.getElementById(`td3_${i + 1}`);
+                    td3.textContent = "";
+                }
+            }
+        }
+    }
+
 }
