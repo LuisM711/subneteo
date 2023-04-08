@@ -88,8 +88,8 @@ fn = () => {
     numeroSubredesGlobal = numeroSubredes;
     hostPorSubredGlobal = numeroHostPorSubred;
     //console.log(obtenerNuevaMascara(mascara,numeroSubredes));
-    let nuevaMascara = obtenerNuevaMascara(mascara,numeroSubredes)
-    document.getElementById("nuevaMascara").textContent = "Nueva mascara: "+nuevaMascara;
+    let nuevaMascara = obtenerNuevaMascara(mascara, numeroSubredes)
+    document.getElementById("nuevaMascara").textContent = "Nueva mascara: " + nuevaMascara;
     let table = new PaginatedTable((numeroSubredes / 10) + 1, 10, [ip, mascara, numeroHostPorSubred]);
     table.iniciar();
 }
@@ -173,11 +173,11 @@ obtenerMascara = (ip = "") => {
     return mascara;
 }
 obtenerNuevaMascara = (mascara, subredes) => {
-    let unosMascara = convertirABinario(mascara).split('1').length-1;
-    let unosSubred = (subredes).toString(2).split('0').length-1;
-    let nuevaMascara = '1'.repeat(unosMascara+unosSubred).padEnd(32,'0');
+    let unosMascara = convertirABinario(mascara).split('1').length - 1;
+    let unosSubred = (subredes).toString(2).split('0').length - 1;
+    let nuevaMascara = '1'.repeat(unosMascara + unosSubred).padEnd(32, '0');
     return convertirADecimal(nuevaMascara);
-    
+
 }
 obtenerHostPorSubred = (mascara = "", subredes = 0) => {
     let mascaraBinaria = convertirABinario(mascara);
@@ -268,13 +268,11 @@ async function textArea() {
     }, 0.1);
 
 }
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+
 class PaginatedTable {
     constructor(pages, subredesPorPagina, datosGenerales) {
         this.currentPage = 1;
-        this.pages = pages;
+        this.pages = Math.trunc(pages);
         this.subredesPorPagina = subredesPorPagina;
         this.datosGenerales = datosGenerales;
         this.data = null;
@@ -310,13 +308,20 @@ class PaginatedTable {
 
     }
     async goToPage(page) {
-        if (page < 1 || page > this.pages) {
-            return;
+
+        if (page >= 1 && page <= this.pages) {
+            page = page;
         }
+        else if (page < 1)
+            page = 1;
+        else if (page > this.pages)
+            page = this.pages;
+
+        else page = 1;
         this.currentPage = page;
         //let data = await fetchData(this.currentPage, this.subredesPorPagina);
         let data = await this.fetchData(this.currentPage, this.subredesPorPagina);
-        console.log(data);
+        //console.log(data);
         this.renderTableData(data);
     }
     async prevPage() {
@@ -330,46 +335,50 @@ class PaginatedTable {
 
     }
     async renderTableData(data) {
-        if (!this.cargado) {
-            const table = document.createElement('table');
-            table.classList.add('table');
 
-            const thead = document.createElement('thead');
+        const table = document.createElement('table');
+        table.classList.add('table');
+
+        const thead = document.createElement('thead');
+        const tr = document.createElement('tr');
+        const th1 = document.createElement('th');
+        th1.textContent = 'Numero de subred';
+        const th2 = document.createElement('th');
+        th2.textContent = 'ID de red';
+        const th3 = document.createElement('th');
+        th3.textContent = 'Broadcast';
+
+        tr.appendChild(th1);
+        tr.appendChild(th2);
+        tr.appendChild(th3);
+        thead.appendChild(tr);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        data.forEach((row, index) => {
+            //console.log(row,index);
             const tr = document.createElement('tr');
-            const th1 = document.createElement('th');
-            th1.textContent = 'Numero de subred';
-            const th2 = document.createElement('th');
-            th2.textContent = 'ID de red';
-            const th3 = document.createElement('th');
-            th3.textContent = 'Broadcast';
+            const td1 = document.createElement('td');
+            td1.id = `td1_${index + 1}`;
+            td1.textContent = row.numeroSubred;
+            const td2 = document.createElement('td');
+            td2.id = `td2_${index + 1}`;
+            td2.textContent = row.subredID;
+            const td3 = document.createElement('td');
+            td3.id = `td3_${index + 1}`;
+            td3.textContent = row.broadcast;
 
-            tr.appendChild(th1);
-            tr.appendChild(th2);
-            tr.appendChild(th3);
-            thead.appendChild(tr);
-            table.appendChild(thead);
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            tr.appendChild(td3);
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
 
-            const tbody = document.createElement('tbody');
-            data.forEach((row, index) => {
-                //console.log(row,index);
-                const tr = document.createElement('tr');
-                const td1 = document.createElement('td');
-                td1.id = `td1_${index + 1}`;
-                td1.textContent = row.numeroSubred;
-                const td2 = document.createElement('td');
-                td2.id = `td2_${index + 1}`;
-                td2.textContent = row.subredID;
-                const td3 = document.createElement('td');
-                td3.id = `td3_${index + 1}`;
-                td3.textContent = row.broadcast;
 
-                tr.appendChild(td1);
-                tr.appendChild(td2);
-                tr.appendChild(td3);
-                tbody.appendChild(tr);
-            });
-            table.appendChild(tbody);
-            let pagination = document.createElement('div');
+        let pagination;
+        if (this.pages < 100) {
+            pagination = document.createElement('div');
             pagination.classList.add('pagination');
             let ul = document.createElement('ul');
             ul.classList.add('pagination');
@@ -378,43 +387,161 @@ class PaginatedTable {
                 li.classList.add('page-item');
                 const a = document.createElement('a');
                 a.classList.add('page-link');
-                //a.href = '#';
                 a.textContent = i;
                 a.addEventListener('click', () => {
                     this.goToPage(i);
                 });
                 li.appendChild(a);
                 ul.appendChild(li);
-            }//debugger;
+            }
             pagination.appendChild(ul);
-            const container = document.getElementById("tablaDeRedes");
-            container.innerHTML = '';
-            container.appendChild(table);
-            container.appendChild(pagination);
-            this.cargado = true;
         }
         else {
-
-            data.forEach((row, index) => {
-                //console.log(row,index);
-                const td1 = document.getElementById(`td1_${index + 1}`);
-                td1.textContent = row.numeroSubred;
-                const td2 = document.getElementById(`td2_${index + 1}`);
-                td2.textContent = row.subredID;
-                const td3 = document.getElementById(`td3_${index + 1}`);
-                td3.textContent = row.broadcast;
+            // <div class="input-group input-group-sm">
+            //     <div class="input-group-prepend">
+            //         <button class="btn btn-outline-secondary" type="button"><i class="fas fa-chevron-left"></i></button>
+            //     </div>
+            //     <input type="text" class="form-control" aria-label="Page number">
+            //         <div class="input-group-append">
+            //             <button class="btn btn-outline-secondary" type="button"><i class="fas fa-chevron-right"></i></button>
+            //         </div>
+            // </div>
+            pagination = document.createElement("div");
+            pagination.classList.add("input-group", "input-group-sm", "inputNavegacion");
+            let anterior = document.createElement("div");
+            anterior.classList.add("input-group-prepend");
+            let botonAnterior = document.createElement("button");
+            botonAnterior.classList.add("btn", "btn-outline-secondary");
+            botonAnterior.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-left-fill" viewBox="0 0 16 16">
+            <path d="m3.86 8.753 5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
+          </svg>`;
+            botonAnterior.addEventListener('click', () => {
+                this.goToPage(this.currentPage - 1);
             });
-            if (data.length < this.subredesPorPagina) {
-                for (let i = data.length; i < this.subredesPorPagina; i++) {
-                    const td1 = document.getElementById(`td1_${i + 1}`);
-                    td1.textContent = "";
-                    const td2 = document.getElementById(`td2_${i + 1}`);
-                    td2.textContent = "";
-                    const td3 = document.getElementById(`td3_${i + 1}`);
-                    td3.textContent = "";
-                }
-            }
+            anterior.appendChild(botonAnterior);
+            pagination.appendChild(anterior);
+            let input = document.createElement("input");
+            input.type = "text";
+            input.classList.add("form-control");
+            input.id = "inputText";
+            input.placeholder = `[1 - ${Math.trunc(this.pages)}]`;
+            input.addEventListener('change', (event) => {
+                //debugger;
+                input = event.target.value;
+                this.goToPage(Number(input));
+            });
+            pagination.appendChild(input);
+            let siguiente = document.createElement("div");
+            siguiente.classList.add("input-group-append");
+            let botonSiguiente = document.createElement("button");
+            botonSiguiente.classList.add("btn", "btn-outline-secondary");
+            botonSiguiente.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16">
+            <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/>
+          </svg>`;
+            botonSiguiente.addEventListener('click', () => {
+                this.goToPage(this.currentPage + 1);
+            });
+            siguiente.appendChild(botonSiguiente);
+            pagination.appendChild(siguiente);
+
         }
+        const container = document.getElementById("tablaDeRedes");
+        container.innerHTML = '';
+        container.appendChild(table);
+        container.appendChild(pagination);
+
+
+
+
     }
 
+
+
 }
+// async renderTableData(data) {
+//     if (!this.cargado) {
+//         const table = document.createElement('table');
+//         table.classList.add('table');
+
+//         const thead = document.createElement('thead');
+//         const tr = document.createElement('tr');
+//         const th1 = document.createElement('th');
+//         th1.textContent = 'Numero de subred';
+//         const th2 = document.createElement('th');
+//         th2.textContent = 'ID de red';
+//         const th3 = document.createElement('th');
+//         th3.textContent = 'Broadcast';
+
+//         tr.appendChild(th1);
+//         tr.appendChild(th2);
+//         tr.appendChild(th3);
+//         thead.appendChild(tr);
+//         table.appendChild(thead);
+
+//         const tbody = document.createElement('tbody');
+//         data.forEach((row, index) => {
+//             //console.log(row,index);
+//             const tr = document.createElement('tr');
+//             const td1 = document.createElement('td');
+//             td1.id = `td1_${index + 1}`;
+//             td1.textContent = row.numeroSubred;
+//             const td2 = document.createElement('td');
+//             td2.id = `td2_${index + 1}`;
+//             td2.textContent = row.subredID;
+//             const td3 = document.createElement('td');
+//             td3.id = `td3_${index + 1}`;
+//             td3.textContent = row.broadcast;
+
+//             tr.appendChild(td1);
+//             tr.appendChild(td2);
+//             tr.appendChild(td3);
+//             tbody.appendChild(tr);
+//         });
+//         table.appendChild(tbody);
+//         let pagination = document.createElement('div');
+//         pagination.classList.add('pagination');
+//         let ul = document.createElement('ul');
+//         ul.classList.add('pagination');
+//         for (let i = 1; i <= this.pages; i++) {
+//             let li = document.createElement('li');
+//             li.classList.add('page-item');
+//             const a = document.createElement('a');
+//             a.classList.add('page-link');
+//             //a.href = '#';
+//             a.textContent = i;
+//             a.addEventListener('click', () => {
+//                 this.goToPage(i);
+//             });
+//             li.appendChild(a);
+//             ul.appendChild(li);
+//         }//debugger;
+//         pagination.appendChild(ul);
+//         const container = document.getElementById("tablaDeRedes");
+//         container.innerHTML = '';
+//         container.appendChild(table);
+//         container.appendChild(pagination);
+//         this.cargado = true;
+//     }
+//     else {
+
+//         data.forEach((row, index) => {
+//             //console.log(row,index);
+//             const td1 = document.getElementById(`td1_${index + 1}`);
+//             td1.textContent = row.numeroSubred;
+//             const td2 = document.getElementById(`td2_${index + 1}`);
+//             td2.textContent = row.subredID;
+//             const td3 = document.getElementById(`td3_${index + 1}`);
+//             td3.textContent = row.broadcast;
+//         });
+//         if (data.length < this.subredesPorPagina) {
+//             for (let i = data.length; i < this.subredesPorPagina; i++) {
+//                 const td1 = document.getElementById(`td1_${i + 1}`);
+//                 td1.textContent = "";
+//                 const td2 = document.getElementById(`td2_${i + 1}`);
+//                 td2.textContent = "";
+//                 const td3 = document.getElementById(`td3_${i + 1}`);
+//                 td3.textContent = "";
+//             }
+//         }
+//     }
+// }
