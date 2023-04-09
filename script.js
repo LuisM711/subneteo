@@ -13,6 +13,7 @@ onload = (event) => {
 }
 
 fn = () => {
+    document.getElementById("totalidad").style.display = "none";
     //debugger
     let DOMaviso = document.getElementById("aviso");
     DOMaviso.innerHTML = '';
@@ -47,49 +48,19 @@ fn = () => {
         avisoError("Error al obtener la entrada de subredes/host");
         return 0;
     }
-
+    
     document.getElementById("subredesTeoricas").innerHTML = numeroSubredes;
     document.getElementById("subredesPracticas").innerHTML = numeroSubredes - 2;
     document.getElementById("hostTeoricos").innerHTML = numeroHostPorSubred;
     document.getElementById("hostPracticos").innerHTML = numeroHostPorSubred - 2;
-    let limiteInferior = 0, limiteSuperior = 0;
-    let subred = [];
-    let parrafo = "";
-    if (numeroSubredes >= 4) {
-        document.getElementById("ultimos").style = "display:''";
-
-        for (let i = 0; i < 3; i++) {
-            subred = obtenerRangoSubred(ip, mascara, numeroHostPorSubred, i);
-            limiteInferior = subred[0];
-            limiteSuperior = subred[1];
-            parrafo = document.getElementById(`rango${i}`);
-            parrafo.innerHTML = `Subred ${i + 1}: [${limiteInferior} - ${limiteSuperior}]`;
-        }
-        for (let i = numeroSubredes; i > numeroSubredes - 3; i--) {
-
-            subred = obtenerRangoSubred(ip, mascara, numeroHostPorSubred, i - 1);
-            limiteInferior = subred[0];
-            limiteSuperior = subred[1];
-            parrafo = document.getElementById(`rangoN-${numeroSubredes - i}`);
-            parrafo.innerHTML = `Subred ${i}: [${limiteInferior} - ${limiteSuperior}]`;
-        }
-    } else {
-        document.getElementById("ultimos").style = "display:none";
-        for (let i = 0; i < numeroSubredes; i++) {
-            subred = obtenerRangoSubred(ip, mascara, numeroHostPorSubred, i);
-            limiteInferior = subred[0];
-            limiteSuperior = subred[1];
-            parrafo = document.getElementById(`rango${i}`);
-            parrafo.innerHTML = `Subred ${i + 1}: [${limiteInferior} - ${limiteSuperior}]`;
-        }
-    }
+    document.getElementById("totalidad").style.display = "";
     ipGlobal = ip;
     mascaraGlobal = mascara;
     numeroSubredesGlobal = numeroSubredes;
     hostPorSubredGlobal = numeroHostPorSubred;
     //console.log(obtenerNuevaMascara(mascara,numeroSubredes));
     let nuevaMascara = obtenerNuevaMascara(mascara, numeroSubredes)
-    document.getElementById("nuevaMascara").textContent = "Nueva mascara: " + nuevaMascara;
+    //document.getElementById("nuevaMascara").textContent = "Nueva mascara: " + nuevaMascara;
     let table = new PaginatedTable((numeroSubredes / 10) + 1, 10, [ip, mascara, numeroHostPorSubred]);
     table.iniciar();
 }
@@ -154,7 +125,6 @@ obtenerRangoSubred = (ip, mascaraSubred, numHostsPorSubred, numSubred) => {
     let inicioSubredBin = (parseInt(ipBin, 2) + numHostsPorSubred * numSubred).toString(2).padStart(32, '0');
     let finSubredBin = (parseInt(inicioSubredBin, 2) + numHostsPorSubred - 1).toString(2);
     // Convertir las direcciones IP de inicio y fin a formato decimal
-    //console.log(inicioSubredBin,finSubredBin,numSubred,convertirADecimal(inicioSubredBin),convertirADecimal(complementoBinario(finSubredBin))); 
     let inicioSubred = convertirADecimal(inicioSubredBin);//El fin de subred se rellena con 0 a la izq
     let finSubred = convertirADecimal(finSubredBin.padStart(32, '0'));
 
@@ -337,8 +307,10 @@ class PaginatedTable {
     async renderTableData(data) {
 
         const table = document.createElement('table');
-        table.classList.add('table');
-
+        table.classList.add("table", "caption-top", "table-striped");
+        const caption = document.createElement("caption");
+        caption.textContent = `Pagina ${this.currentPage}`;
+        table.appendChild(caption);
         const thead = document.createElement('thead');
         const tr = document.createElement('tr');
         const th1 = document.createElement('th');
