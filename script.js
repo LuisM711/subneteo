@@ -71,6 +71,7 @@ fn = () => {
         else if(nuevaMascara[posicion] != mascara_[posicion] && nuevaMascara[posicion] == 255)document.getElementById(`inferior${posicion}`).innerHTML = "Subred";
         else document.getElementById(`inferior${posicion}`).innerHTML = "Subred y host";
         document.getElementById(`siguiente${posicion}`).innerHTML = Number(nuevaMascara[posicion]).toString(2).padEnd(8,0);
+        document.getElementById(`siguiente${posicion}`).style = "padding: 0 !important";
     });
 
     let table = new PaginatedTable((numeroSubredes / 10) + 1, 10, [ip, mascara, numeroHostPorSubred]);
