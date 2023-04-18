@@ -60,7 +60,19 @@ fn = () => {
     hostPorSubredGlobal = numeroHostPorSubred;
     //console.log(obtenerNuevaMascara(mascara,numeroSubredes));
     let nuevaMascara = obtenerNuevaMascara(mascara, numeroSubredes)
-    //document.getElementById("nuevaMascara").textContent = "Nueva mascara: " + nuevaMascara;
+    nuevaMascara = nuevaMascara.split('.');
+    mascara_ = mascara.split('.');
+    console.log(nuevaMascara);
+    nuevaMascara.forEach((valor,posicion) => {
+        //debugger;
+        document.getElementById(`superior${posicion}`).innerHTML = valor;
+        if(nuevaMascara[posicion] == mascara_[posicion] && nuevaMascara[posicion]!=0)document.getElementById(`inferior${posicion}`).innerHTML = "Red";
+        else if(nuevaMascara[posicion] === "0")document.getElementById(`inferior${posicion}`).innerHTML = "Host";
+        else if(nuevaMascara[posicion] != mascara_[posicion] && nuevaMascara[posicion] == 255)document.getElementById(`inferior${posicion}`).innerHTML = "Subred";
+        else document.getElementById(`inferior${posicion}`).innerHTML = "Subred y host";
+        document.getElementById(`siguiente${posicion}`).innerHTML = Number(nuevaMascara[posicion]).toString(2).padEnd(8,0);
+    });
+
     let table = new PaginatedTable((numeroSubredes / 10) + 1, 10, [ip, mascara, numeroHostPorSubred]);
     table.iniciar();
 }
