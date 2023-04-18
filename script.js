@@ -382,17 +382,23 @@ class PaginatedTable {
             pagination.appendChild(ul);
         }
         else {
-            // <div class="input-group input-group-sm">
-            //     <div class="input-group-prepend">
-            //         <button class="btn btn-outline-secondary" type="button"><i class="fas fa-chevron-left"></i></button>
-            //     </div>
-            //     <input type="text" class="form-control" aria-label="Page number">
-            //         <div class="input-group-append">
-            //             <button class="btn btn-outline-secondary" type="button"><i class="fas fa-chevron-right"></i></button>
-            //         </div>
-            // </div>
             pagination = document.createElement("div");
             pagination.classList.add("input-group", "input-group-sm", "inputNavegacion");
+
+            let primera = document.createElement("div");
+            primera.classList.add("input-group-prepend");
+            let botonPrimera = document.createElement("button");
+            botonPrimera.classList.add("btn", "btn-outline-secondary");
+            botonPrimera.innerHTML = "Primera";
+            botonPrimera.addEventListener('click', () => {
+                this.goToPage(1);
+            });
+            primera.appendChild(botonPrimera);
+            pagination.appendChild(primera);
+
+
+
+
             let anterior = document.createElement("div");
             anterior.classList.add("input-group-prepend");
             let botonAnterior = document.createElement("button");
@@ -428,6 +434,18 @@ class PaginatedTable {
             });
             siguiente.appendChild(botonSiguiente);
             pagination.appendChild(siguiente);
+            let ultimo = document.createElement("div");
+            ultimo.classList.add("input-group-append");
+            let botonUltimo = document.createElement("button");
+            botonUltimo.classList.add("btn", "btn-outline-secondary");
+            botonUltimo.innerHTML = "Ultima";
+
+            botonUltimo.addEventListener('click', () => {
+                //debugger;
+                this.goToPage(this.pages);
+            });
+            ultimo.appendChild(botonUltimo);
+            pagination.appendChild(ultimo);
 
         }
         const container = document.getElementById("tablaDeRedes");
