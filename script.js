@@ -35,7 +35,8 @@ fn = () => {
         return 0;
     }
     if (document.getElementById("rd_numero_subredes").checked) {
-        numeroSubredes = document.getElementById("peticion").value;
+        numeroSubredes = Number(document.getElementById("peticion").value);
+        numeroSubredes+=2;
         numeroSubredes = masCercanoADos(numeroSubredes);
         numeroHostPorSubred = obtenerHostPorSubred(mascara, numeroSubredes);
     }
