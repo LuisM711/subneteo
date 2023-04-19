@@ -30,17 +30,19 @@ fn = () => {
         return 0;
     }
     let mascara = obtenerMascara(ip);
-    if (mascara == "255.255.255.255") {
-        avisoError("Esa red no se puede subnetear");
+    if (mascara == "255.255.255.255" || mascara == "0.0.0.0") {
+        avisoError("Red invalida");
         return 0;
     }
+    let valor = Number(document.getElementById("peticion").value);
+    valor += 2;
     if (document.getElementById("rd_numero_subredes").checked) {
-        numeroSubredes = document.getElementById("peticion").value;
+        numeroSubredes = valor;
         numeroSubredes = masCercanoADos(numeroSubredes);
         numeroHostPorSubred = obtenerHostPorSubred(mascara, numeroSubredes);
     }
     else if (document.getElementById("rd_host_subred").checked) {
-        numeroHostPorSubred = document.getElementById("peticion").value;
+        numeroHostPorSubred = valor;
         numeroHostPorSubred = masCercanoADos(numeroHostPorSubred);
         numeroSubredes = obtenerNumeroSubredes(mascara, numeroHostPorSubred);
     }
