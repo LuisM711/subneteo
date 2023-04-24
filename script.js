@@ -50,7 +50,12 @@ fn = () => {
         avisoError("Error al obtener la entrada de subredes/host");
         return 0;
     }
-    
+    if(!(comprobarMaximo(mascara, Number(peticion))))
+    {
+        avisoError("Error, no se pueden generar dichas subredes / host");
+        return 0;
+    }
+    //console.log(comprobarMaximo(mascara, Number(peticion)));
     document.getElementById("subredesTeoricas").innerHTML = numeroSubredes;
     document.getElementById("subredesPracticas").innerHTML = numeroSubredes - 2;
     document.getElementById("hostTeoricos").innerHTML = numeroHostPorSubred;
@@ -65,15 +70,15 @@ fn = () => {
     document.getElementById("lblNuevaMascara").innerHTML = `Nueva mascara : ${nuevaMascara}`;
     nuevaMascara = nuevaMascara.split('.');
     mascara_ = mascara.split('.');
-    console.log(nuevaMascara);
-    nuevaMascara.forEach((valor,posicion) => {
+    //console.log(nuevaMascara);
+    nuevaMascara.forEach((valor, posicion) => {
         //debugger;
         document.getElementById(`superior${posicion}`).innerHTML = valor;
-        if(nuevaMascara[posicion] == mascara_[posicion] && nuevaMascara[posicion]!=0)document.getElementById(`inferior${posicion}`).innerHTML = "Red";
-        else if(nuevaMascara[posicion] === "0")document.getElementById(`inferior${posicion}`).innerHTML = "Host";
-        else if(nuevaMascara[posicion] != mascara_[posicion] && nuevaMascara[posicion] == 255)document.getElementById(`inferior${posicion}`).innerHTML = "Subred";
+        if (nuevaMascara[posicion] == mascara_[posicion] && nuevaMascara[posicion] != 0) document.getElementById(`inferior${posicion}`).innerHTML = "Red";
+        else if (nuevaMascara[posicion] === "0") document.getElementById(`inferior${posicion}`).innerHTML = "Host";
+        else if (nuevaMascara[posicion] != mascara_[posicion] && nuevaMascara[posicion] == 255) document.getElementById(`inferior${posicion}`).innerHTML = "Subred";
         else document.getElementById(`inferior${posicion}`).innerHTML = "Subred y host";
-        document.getElementById(`siguiente${posicion}`).innerHTML = Number(nuevaMascara[posicion]).toString(2).padEnd(8,0);
+        document.getElementById(`siguiente${posicion}`).innerHTML = Number(nuevaMascara[posicion]).toString(2).padEnd(8, 0);
         document.getElementById(`siguiente${posicion}`).style = "padding: 0 !important";
     });
 
@@ -81,7 +86,27 @@ fn = () => {
     table.iniciar();
 }
 
+comprobarMaximo = (mascara = "", peticion = 0) => {
+    switch (mascara) {
+        case "255.0.0.0":
+            if (peticion < Math.pow(2, 22) - 1) return true;
+            else return false;
+            break;
+        case "255.255.0.0":
+            if (peticion < Math.pow(2, 14) - 1) return true;
+            else return false;
+            break;
+        case "255.255.255.0":
+            if (peticion < Math.pow(2, 6) - 1) return true;
+            else return false;
+            break;
 
+
+        default: return false;
+            break;
+    }
+    return true;
+}
 
 
 
