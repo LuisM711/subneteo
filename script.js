@@ -61,7 +61,8 @@ fn = () => {
     numeroSubredesGlobal = numeroSubredes;
     hostPorSubredGlobal = numeroHostPorSubred;
     //console.log(obtenerNuevaMascara(mascara,numeroSubredes));
-    let nuevaMascara = obtenerNuevaMascara(mascara, numeroSubredes)
+    let nuevaMascara = obtenerNuevaMascara(mascara, numeroSubredes);
+    document.getElementById("lblNuevaMascara").innerHTML = `Nueva mascara : ${nuevaMascara}`;
     nuevaMascara = nuevaMascara.split('.');
     mascara_ = mascara.split('.');
     console.log(nuevaMascara);
@@ -255,17 +256,17 @@ async function textArea() {
 }
 
 class PaginatedTable {
-    constructor(pages, subredesPorPagina, datosGenerales) {
-        this.currentPage = 1;
-        this.pages = Math.trunc(pages);
+    constructor(paginasTotales, subredesPorPagina, datosGenerales) {
+        this.paginaActual = 1;
+        this.paginasTotales = Math.trunc(paginasTotales);
         this.subredesPorPagina = subredesPorPagina;
         this.datosGenerales = datosGenerales;
         this.data = null;
         this.cargado = false;
     }
     async iniciar() {
-        let data = await this.fetchData(this.currentPage, this.subredesPorPagina);
-        this.renderTableData(data);
+        let data = await this.fetchData(this.paginaActual, this.subredesPorPagina);
+        this.mostrarTrabla(data);
     }
     async fetchData(page, subredesPorPagina) {
         const primeraSubred = (page * subredesPorPagina) - subredesPorPagina + 1;
@@ -294,37 +295,27 @@ class PaginatedTable {
     }
     async goToPage(page) {
 
-        if (page >= 1 && page <= this.pages) {
+        if (page >= 1 && page <= this.paginasTotales) {
             page = page;
         }
         else if (page < 1)
             page = 1;
-        else if (page > this.pages)
-            page = this.pages;
+        else if (page > this.paginasTotales)
+            page = this.paginasTotales;
 
         else page = 1;
-        this.currentPage = page;
-        //let data = await fetchData(this.currentPage, this.subredesPorPagina);
-        let data = await this.fetchData(this.currentPage, this.subredesPorPagina);
+        this.paginaActual = page;
+        //let data = await fetchData(this.paginaActual, this.subredesPorPagina);
+        let data = await this.fetchData(this.paginaActual, this.subredesPorPagina);
         //console.log(data);
-        this.renderTableData(data);
+        this.mostrarTrabla(data);
     }
-    async prevPage() {
-        const prevPage = this.currentPage - 1;
-        if (prevPage < 1) {
-            return;
-        }
-        this.currentPage = prevPage;
-        let data = await fetchData(this.currentPage, this.subredesPorPagina);
-        this.renderTableData(data);
-
-    }
-    async renderTableData(data) {
+    async mostrarTrabla(data) {
 
         const table = document.createElement('table');
         table.classList.add("table", "caption-top", "table-striped");
         const caption = document.createElement("caption");
-        caption.textContent = `Pagina ${this.currentPage}`;
+        caption.textContent = `Pagina ${this.paginaActual}`;
         table.appendChild(caption);
         const thead = document.createElement('thead');
         const tr = document.createElement('tr');
@@ -364,12 +355,12 @@ class PaginatedTable {
 
 
         let pagination;
-        if (this.pages < 100) {
+        if (this.paginasTotales < 100) {
             pagination = document.createElement('div');
             pagination.classList.add('pagination');
             let ul = document.createElement('ul');
             ul.classList.add('pagination');
-            for (let i = 1; i <= this.pages; i++) {
+            for (let i = 1; i <= this.paginasTotales; i++) {
                 let li = document.createElement('li');
                 li.classList.add('page-item');
                 const a = document.createElement('a');
@@ -409,7 +400,7 @@ class PaginatedTable {
             <path d="m3.86 8.753 5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
           </svg>`;
             botonAnterior.addEventListener('click', () => {
-                this.goToPage(this.currentPage - 1);
+                this.goToPage(this.paginaActual - 1);
             });
             anterior.appendChild(botonAnterior);
             pagination.appendChild(anterior);
@@ -417,7 +408,7 @@ class PaginatedTable {
             input.type = "text";
             input.classList.add("form-control");
             input.id = "inputText";
-            input.placeholder = `[1 - ${Math.trunc(this.pages)}]`;
+            input.placeholder = `[1 - ${Math.trunc(this.paginasTotales)}]`;
             input.addEventListener('change', (event) => {
                 //debugger;
                 input = event.target.value;
@@ -432,7 +423,7 @@ class PaginatedTable {
             <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/>
           </svg>`;
             botonSiguiente.addEventListener('click', () => {
-                this.goToPage(this.currentPage + 1);
+                this.goToPage(this.paginaActual + 1);
             });
             siguiente.appendChild(botonSiguiente);
             pagination.appendChild(siguiente);
@@ -444,7 +435,7 @@ class PaginatedTable {
 
             botonUltimo.addEventListener('click', () => {
                 //debugger;
-                this.goToPage(this.pages);
+                this.goToPage(this.paginasTotales);
             });
             ultimo.appendChild(botonUltimo);
             pagination.appendChild(ultimo);
