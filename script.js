@@ -172,15 +172,21 @@ obtenerRangoSubred = (ip, mascaraSubred, numHostsPorSubred, numSubred) => {
     return [inicioSubred, finSubred];
 }
 obtenerMascara = (ip = "") => {
-    let octetos = ip.split('.');
+    // let octetos = ip.split('.');
     let mascara = "0.0.0.0";
-    let octetosMascara = mascara.split('.');
-    for (let i = 0; i < octetos.length; i++) {
-        if (Number(octetos[i]) === 0)
-            octetosMascara[i] = '0';
-        else octetosMascara[i] = "255";
-    }
-    mascara = octetosMascara.join('.');
+    // let octetosMascara = mascara.split('.');
+    // for (let i = 0; i < octetos.length; i++) {
+    //     if (Number(octetos[i]) === 0)
+    //         octetosMascara[i] = '0';
+    //     else octetosMascara[i] = "255";
+    // }
+    // mascara = octetosMascara.join('.');
+    // return mascara;
+    primero = Number(ip.split('.')[0]);
+    if(primero>0 && primero<=127)mascara = "255.0.0.0";
+    else if(primero>=128 && primero<=191)mascara = "255.255.0.0";
+    else if(primero>=192 && primero<=223)mascara = "255.255.255.0";
+    else return false;
     return mascara;
 }
 obtenerNuevaMascara = (mascara, subredes) => {
